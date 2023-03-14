@@ -1,0 +1,23 @@
+/* css styles */
+
+/* over-write content width limitation */
+
+#quarto-content {
+  grid-template-columns: [screen-start] 1.5em [screen-start-inset] 5fr [page-start page-start-inset] 35px [body-start-outset] 35px [body-start] 1.5em [body-content-start] minmax(500px, calc(100% - 3em)) [body-content-end] 1.5em [body-end] 35px [body-end-outset] minmax(75px, 145px) [page-end-inset] 35px [page-end] 5fr [screen-end-inset] 1.5em [screen-end];
+}
+
+/* the svg of the R2R figure on the record page */
+.r2r {
+  width: auto;
+  height: auto;
+  max-width: 1000px;
+  max-height: 800px;
+  min-width:  100px;
+  min-height: 400px;
+}
+
+
+
+.myInfo{
+  color: red;
+}

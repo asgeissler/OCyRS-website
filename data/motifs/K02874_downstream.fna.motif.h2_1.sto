@@ -1,0 +1,28 @@
+# STOCKHOLM 1.0
+#=GF AU CMfinder (infernal 1.1)
+
+#=GS 1641165.SAMN03466112.XM38_21175          WT 1.00
+#=GS 1173028.SAMN02261253.GCA_000332335_06178 WT 1.00
+#=GS 65393.SAMN00000286.PCC7424_3713          WT 1.00
+#=GS 1170562.SAMN02261327.Cal6303_5380        WT 1.00
+#=GS 454136.SAMN05890689.NIES2119_10235       WT 1.00
+
+#=GS 1641165.SAMN03466112.XM38_21175          DE 84..136	37.1808
+#=GS 1173028.SAMN02261253.GCA_000332335_06178 DE 70..113	41.568
+#=GS 65393.SAMN00000286.PCC7424_3713          DE 78..123	47.1353
+#=GS 1170562.SAMN02261327.Cal6303_5380        DE 104..147	49.6674
+#=GS 454136.SAMN05890689.NIES2119_10235       DE 92..137	45.2426
+
+1641165.SAMN03466112.XM38_21175                  AGGGG-GU-AG--CCCCA--AU-UGCAAUUCACGAUUAGUUCCCUGACCAAGCCCAGGGA-
+#=GR 1641165.SAMN03466112.XM38_21175          SS ..<<<........>>>........................<<<<<<........>>>>>>.
+1173028.SAMN02261253.GCA_000332335_06178         CCUGAAUU-CA-UCUAGA--GAGU--AA----------AGUCCCUGACCAAGACCAGGGA-
+#=GR 1173028.SAMN02261253.GCA_000332335_06178 SS ..<<..........>>........................<<<<<<........>>>>>>.
+65393.SAMN00000286.PCC7424_3713                  AUAACUGUUAACUGUUAA--CUAU--AA----------AUCCCCUGACCAAGCCCAGGG-C
+#=GR 65393.SAMN00000286.PCC7424_3713          SS ..<<<........>>>.........................<<<<<........>>>>>..
+1170562.SAMN02261327.Cal6303_5380                UUCGG-GU-AA-UCUCAA--AUCU-UUA-----------UUCCCUGACAAAGACCAGGGAC
+#=GR 1170562.SAMN02261327.Cal6303_5380        SS ...<<........>>.........................<<<<<<........>>>>>>.
+454136.SAMN05890689.NIES2119_10235               AAAAUC-U-AA-AAUCUAAAAUCU-AAA----------AUUUCCUGACCAAGCCCAGGAA-
+#=GR 454136.SAMN05890689.NIES2119_10235       SS ...<<........>>.........................<<<<<<........>>>>>>.
+#=GC SS_cons                                     ::<<<___.__._>>>--..----.---..........--<<<<<<________>>>>>>:
+#=GC RF                                          xxxxxxxx.xx.xxxxxx..xxxx.xxx..........xxxxxxxxxxxxxxxxxxxxxxx
+//

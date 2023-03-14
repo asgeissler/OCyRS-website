@@ -1,0 +1,35 @@
+project:
+  type: website
+
+website:
+  title: "CRS-Cyanobacteria"
+  # important, or the browser-record link will be broken
+  search: false
+  
+  navbar:
+    title: false
+    left:
+      - href: https://rth.dk/
+        text: RTH
+      - href: index.qmd
+        text: CRS-Cyanobacteria
+      - browse.qmd
+      - candidate.qmd
+      - msa.qmd
+      - cmsearch.qmd
+
+format:
+  html:
+    #theme: spacelab
+    theme: yeti
+    page-layout: full
+    css: styles.css
+    toc: false
+
+
+editor: visual
+
+echo: FALSE
+include: TRUE
+message: FALSE
+warning: FALSE

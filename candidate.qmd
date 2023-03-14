@@ -1,0 +1,441 @@
+---
+title: "CRS details"
+---
+
+```{r}
+# Prepare data for filtering
+library(tidyverse)
+
+redundant <-
+  'data/L_redundant.tsv' |>
+  read_tsv() |>
+  select(motif = redundant) |>
+  unique()
+
+motif <-
+  #'data/potentially-novel-motifs.tsv' |>
+  'data/K2_motifs.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif')
+motif.path <-
+  'data/K_motif-path.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif')
+motif.tax <-
+  'data/K_motif-tax.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif')
+motif.tax.pos <- 
+  'data/K_motif-tax-pos.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif')
+fdr <- 
+  'data/I_fdr.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif')
+
+
+expressed <-
+  'data/4-maybe-interest.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif') |>
+  select(motif, expressed.in.genomes)
+
+motif.path %>%
+  select(motif, side, term, ortholog) %>%
+  unique  %>%
+  left_join(motif, 'motif') %>%
+  left_join(fdr, 'motif')  %>%
+  left_join(
+    motif.tax.pos |>
+      select(motif, species) |>
+      unique() |>
+      count(motif, name = 'no.species'),
+    'motif'
+  )  %>%
+  left_join(expressed, 'motif') |>
+  mutate_at('expressed.in.genomes', replace_na, 0) |>
+  transmute(
+    'Candidate ID' = motif,
+    'Ortholog ID' = term,
+    'Ortholog Name' = ortholog,
+    'Relative position' = side,
+    'Candidate category' = category,
+    #
+    'Candidate length' = alignment.len,
+    'No. sequences' = no.seq,
+    'No. species' = no.species,
+    'Average sequence identity, %' = `Avgerage SI %`,
+    'GC content %' = GC * 100,
+    #
+    "No. base-pairs" = no.bps,
+    'Proportion base-paired alignment positions, %' = `Paired positions %`,
+    #
+    FDR = RNAphylo.fdr,
+    'Transcriptionally active genomes' = expressed.in.genomes,
+    'RNAphylo score (CMfinder)' = `RNAphylo`,
+    'Hmmpair score (CMfinder)' = `hmmpair`,
+    #
+    'Alignment power % (R-Scape)' = `Alignment power %`,
+    'Covarying base-pairs % (R-Scape)' = `Covarying bps %`
+  ) %>%
+  mutate_if(is.double, round, 2) -> motifs
+
+ojs_define(motifs = motifs)
+
+motif %>%
+  pull(motif) %>%
+  unique %>%
+  sort -> motifs_list
+
+ojs_define(motifs_list = motifs_list)
+
+motif.path %>%
+  select(motif, 'KEGG ID' = path, Title = pathway) %>%
+  drop_na %>%
+  unique -> motifs_paths
+
+ojs_define(motifs_paths = motifs_paths)
+
+motif.tax.pos %>%
+  select(motif, species, seqnames, start, end, strand) %>%
+  separate(seqnames, c('tax', 'bio', 'NCBI-accession')) %>%
+  select(- tax, - bio) %>%
+  mutate_at(
+    'species',
+    str_replace,
+    '^([0-9]+) (.*)$',
+    '\\2 (NCBI:txid\\1)'
+  ) %>%
+  arrange(motif, species, `NCBI-accession`, start) -> pos
+
+ojs_define(pos = pos)
+```
+
+
+
+```{r}
+# Prepare overview table for phylogenetic distribution
+# All studied genomes have at least one motif
+# assertthat::are_equal(
+#   202,
+#   motif.tax %>%
+#     select(tax.bio) %>%
+#     unique %>%
+#     nrow
+# )
+
+motif.tax %>%
+  select(order) %>%
+  unique %>%
+  mutate_at('order', str_replace, '^([0-9]+) (.*)$', '\\2 (NCBI:txid\\1)') %>%
+  mutate_at('order', replace_na, 'unknown') %>%
+  arrange(order) %>%
+  mutate(fill = RColorBrewer::brewer.pal(n(), 'Paired')) -> taxa.cl
+
+# drafting ideas for new plot
+full_join(
+  motif.tax %>%
+    select(order, species) %>%
+    unique %>%
+    count(order, name = 'studied.species'),
+  motif.tax %>%
+    select(motif, order, species) %>%
+    unique %>%
+    count(motif, order, name = 'species.with.motif'),
+  'order'
+) %>%
+  mutate(
+    ratio = species.with.motif / studied.species * 100,
+    lab = sprintf('%g of %g species', species.with.motif,
+                  studied.species)
+  ) %>%
+  mutate_at('order', str_replace, '^([0-9]+) (.*)$', '\\2 (NCBI:txid\\1)') %>%
+  mutate_at('order', replace_na, 'unknown') %>%
+  select(motif, order, ratio, lab) %>%
+  complete(motif, order) %>%
+  mutate_at('ratio', replace_na, 0) %>%
+  mutate_at('lab', replace_na, '') %>%
+  left_join(taxa.cl, 'order') -> phylo
+
+ojs_define(phylo = phylo)
+```
+
+```{r}
+# The data of which motif is expressed in which genome
+'data/4-expression-ratios.tsv' |>
+  read_tsv() |>
+  # zFPKM on RPKM data expressed
+  filter(method == 'RPKM') |>
+  select(- method) |>
+  # only on motifs
+  filter(str_detect(gene, 'fna.motif')) |>
+  mutate(
+    motif = str_remove(gene, ';pos.*$')
+  ) |>
+  anti_join(redundant, 'motif') |>
+  # focus on homolog with the strongest expression signal
+  group_by(motif, genome) |>
+  slice_max(ratio, with_ties = FALSE) |>
+  ungroup() |>
+  select(- gene) |>
+  mutate(
+    genome = genome |>
+      str_remove('_txid.*$') |>
+      str_replace_all('\\.', ' ') |>
+      str_replace_all('  ', '. '),
+    ratio = ratio * 100,
+    lab = sprintf(
+      '%s of %s libraries',
+      expressed.libs, libs.total
+    )
+  ) |>
+  select(motif, genome, ratio, lab) |>
+  mutate_at('lab', str_remove, '^0 of [0-9]+ libraries$') -> expr
+
+expr |>
+  select(genome) %>%
+  unique %>%
+  arrange(genome) |>
+  mutate(fill = RColorBrewer::brewer.pal(n(), 'Set1')) -> genome.cl
+
+crossing(motif = motif$motif, genome = genome.cl$genome) |>
+  left_join(expr, c('motif', 'genome')) |>
+  mutate_at('ratio', replace_na, 0) |>
+  mutate_at('lab', replace_na, '') |>
+  arrange(motif, genome) |>
+  left_join(genome.cl, 'genome') -> expr.dat
+
+  
+ojs_define(expr = expr.dat)
+```
+
+
+```{ojs}
+// Allow ojs to access data row-wise
+motifs_tbl = transpose(motifs)
+motifs_paths_tbl = transpose(motifs_paths)
+pos_tbl = transpose(pos)
+
+phylo_tbl = transpose(phylo)
+
+expr_tbl = transpose(expr)
+```
+
+```{ojs}
+//Check GET variable `candidate` for what motif to choose, otherwise default to first one
+para = window.location.href.match(/(?<=candidate=)(.*?)[^&]+/)
+sv = {
+  if ( para !== null ) {
+    if ( motifs_list.includes(para[0]) ) {
+      return para[0]
+    }
+  }
+  return motifs_list[0] 
+}
+
+// Choose a single motif
+viewof sel = Inputs.select(
+  motifs_list,
+  {
+    label: 'Details for',
+    value: sv
+  }
+)
+
+html`Alignment: <a href="https://rth.dk/resources/crs/cyanobacteria/data/motifs/${sel}.sto">Download</a> | <a href="https://rth.dk/resources/crs/cyanobacteria/msa.html?candidate=${sel}">View</a>`
+
+motifs_filtered = motifs_tbl.filter(function(row) {
+  return row["Candidate ID"] === sel
+})
+
+// Sort of transpose for improved overview
+record = Object.keys(motifs_filtered[0]).
+  map(x => new Object({key: x, value:  motifs_filtered[0][x]}))
+```
+
+## Candidate characteristics and score
+
+::: columns
+::: column
+```{ojs}
+Inputs.table(record, {
+  rows: 15,
+  maxHeight: null,
+  format: {
+    'value': function(i) {
+      if (String(i).match(/^K[0-9]+$/) !== null) {
+        return html`<a href="https://www.kegg.jp/entry/${i}" target="_blank">${i}</a>`
+      } else {
+        return i
+      }
+    }
+  }
+})
+```
+:::
+
+::: column
+```{ojs}
+html`<center><img src="https://rth.dk/resources/crs/cyanobacteria//data/R2R/${sel}.svg" class = 'r2r'/></center>`
+```
+:::
+:::
+
+::: columns
+::: column
+## Associated pathways
+
+```{ojs}
+paths_filtered = motifs_paths_tbl.filter(function(row) {
+  return row.motif === sel
+})
+Inputs.table(
+  paths_filtered,
+  {
+    columns: ['KEGG ID', 'Title'],
+    maxHeight: null,
+    format: {
+      'KEGG ID': function(i) {
+        return html`<a href="https://www.kegg.jp/pathway/${i}" target="_blank">${i}</a>`
+      }
+    }
+  }
+)
+```
+
+## Predicted occurences
+
+```{ojs}
+pos_filtered = pos_tbl.filter(function(row) {
+  return row.motif === sel
+})
+Inputs.table(
+  pos_filtered,
+  {
+    columns: ["species","NCBI-accession", "start", "end", "strand"],
+    rows: 50,
+    format: {
+      'NCBI-accession': function(i) {
+        return html`<a href="https://www.ncbi.nlm.nih.gov/search/all/?term=${i}" target="_blank">${i}</a>`
+      }
+    }
+  }
+)
+```
+:::
+
+::: column
+## Phylogenetic distribution
+
+```{ojs}
+phylo_filtered = phylo_tbl.filter(function(row) {
+  return row.motif === sel
+})
+
+Plot.plot({
+  marginLeft: 500,
+  marginBottom: 70,
+  marginTop: 50,
+  height: 600,
+  width: 1000,
+  style: {
+    'font-size': '18pt',
+    'color': 'black',
+    'text-shadow': '1pt 1pt 8pt white'
+  },
+  x: {
+    label: 'Studied species containing the candidate (%)',
+    grid: true
+  },
+  y: {
+    label: 'Phylogenetic order:',
+    labelAnchor: 'top'
+  },
+  marks: [
+    Plot.barX(
+      phylo_filtered,
+      {
+        x: 'ratio',
+        y: 'order',
+        fill: 'fill'
+      }
+    ),
+    Plot.text(
+      phylo_filtered,
+      {
+        x: 2,
+        y: 'order',
+        rotate: 0,
+        textAnchor: 'start',
+        text: 'lab',
+        fontSize: '16pt',
+        fontWeight: 'bolder'
+      }
+    )
+  ]
+})
+```
+
+(Relative to the NCBI taxonomy)
+
+
+## Transcriptional Activity
+
+
+
+```{ojs}
+expr_filtered = expr_tbl.filter(function(row) {
+  return row.motif === sel
+})
+
+Plot.plot({
+  marginLeft: 550,
+  marginBottom: 70,
+  marginTop: 50,
+  height: 600,
+  width: 1000,
+  style: {
+    'font-size': '18pt',
+    'color': 'black',
+    'text-shadow': '1pt 1pt 8pt white'
+  },
+  x: {
+    label: 'Proportion of RNA-seq libraries in which candidate is expressed (%)',
+    grid: true
+  },
+  y: {
+    label: 'Species:',
+    labelAnchor: 'top'
+  },
+  marks: [
+    Plot.barX(
+      expr_filtered,
+      {
+        x: 'ratio',
+        y: 'genome',
+        fill: 'fill'
+      }
+    ),
+    Plot.text(
+      expr_filtered,
+      {
+        x: 2,
+        y: 'genome',
+        rotate: 0,
+        textAnchor: 'start',
+        text: 'lab',
+        fontSize: '16pt',
+        fontWeight: 'bolder'
+      }
+    )
+  ]
+})
+```
+
+
+:::
+:::
+
+
+

@@ -1,0 +1,264 @@
+---
+title: "Reference structures"
+---
+
+## Filter selection
+
+```{r}
+# Prepare data for filtering
+library(tidyverse)
+
+# cmsearch <- read_tsv('data/G_rfam-cmsearch.tsv.gz')
+# for now, only show structures in search regions
+regs <- read_tsv('data/references_inside-of_intergenic_regions.tsv.gz')
+tax <- read_tsv('data/taxonomy.tsv')
+
+################################################################################
+# Pretty tax table
+
+tax %>%
+  select(order, family, genus, species) %>%
+  unique %>%
+  mutate_at(
+    c('order', 'family', 'genus', 'species'),
+    str_replace,
+    '^([0-9]+) (.*)$',
+    '\\2 (NCBI:txid\\1)'
+  ) %>%
+  mutate_all(replace_na, 'N/A') %>%
+  arrange(order, family, genus, species) %>%
+  mutate(taxrow = 1:n()) -> taxes
+
+ojs_define(taxes = taxes)
+
+################################################################################
+# Load curated KEGG annotation
+
+# kegg.path.ko <- 'https://rest.kegg.jp/link/pathway/ko' %>%
+#   read_tsv(col_names = c('term', 'path')) %>%
+#   mutate_all(str_remove, '^.*:')
+# 
+# kegg.paths <- 'https://rest.kegg.jp/list/pathway' %>%
+#   read_tsv(col_names = c('path', 'pathway'))
+
+kegg.ko <- 'https://rest.kegg.jp/list/ko' %>%
+  read_tsv(col_names = c('term', 'ortholog'))
+
+################################################################################
+# Pretty Rfam table
+
+regs %>%
+  # Only Keep Rfam hits
+  filter(type == 'Rfam') %>%
+  select(- type) %>%
+  # Connect to KO
+  separate(region, c('ko', 'side'), sep = '_') %>%
+  left_join(kegg.ko, c('ko' = 'term')) %>%
+  # Lookup taxrow
+  separate(seqnames, c('txid', 'bioproject', 'accession'), sep = '\\.') %>%
+  unite('tax.bio', txid, bioproject, sep = '.') %>%
+  left_join(
+    tax %>%
+      select(tax.bio, species) %>%
+      mutate_at(
+        'species',
+        str_replace,
+        '^([0-9]+) (.*)$',
+        '\\2 (NCBI:txid\\1)'
+      ) %>%
+      mutate_all(replace_na, 'N/A'),
+    'tax.bio'
+  ) %>%
+  left_join(taxes, 'species') %>%
+  arrange(species, rfam, start, end) %>%
+  # Prettyify
+  transmute(
+    taxrow,
+    species,
+    'NCBI-accession' = accession,
+    start, end, strand,
+    structure = rfam,
+    'Rfam ID' = name,
+    side,
+    ortholog = ortholog,
+    'KEGG ID' = ko
+  ) -> refs
+
+ojs_define(refs = refs)
+
+ojs_define(rfams = c(
+  '(no filtering)',
+  refs %>%
+    pull(structure) %>%
+    unique
+))
+
+ojs_define(orthos = c(
+  '(no filtering)',
+  refs %>%
+    pull(ortholog) %>%
+    unique
+))
+```
+
+
+```{ojs}
+// Allow ojs to access data row-wise
+
+taxes_tbl = transpose(taxes)
+refs_tbl = transpose(refs)
+```
+
+::: columns
+::: {.column width="30%"}
+```{ojs}
+
+infoHelper = function(x, lab, txt) {
+  // The element to show
+  let res = html`${lab} <span class='myInfo' id='${x}'>ⓘ</span>`
+  // Add tippy tooltip
+  // Iusse: add with delay, otherwise the span was not yet displayed
+  setTimeout(function() {
+    tippy('#' + x, {
+      content: txt 
+    })
+  }, 500)
+  return(res)
+}
+
+// Build the filteirng form
+viewof filters = Inputs.form({
+  fam: Inputs.select(
+    rfams,
+    {
+      sort: true,
+      label: infoHelper(
+        'infoFam',
+        'Family',
+        'Only show positions related to a specific Rfam family'
+      )
+    }
+  ),
+  side: Inputs.radio(
+    ['either', 'upstream', 'downstream'],
+    {
+      label: infoHelper(
+        'infoLoc',
+        'Relative position',
+        'Location relative to the ortholog anchor'
+      ),
+      value: 'either'
+    }
+  ),
+  ortho: Inputs.select(
+    orthos,
+    {
+      sort: true,
+      label: infoHelper(
+        'infoOrtho',
+        'Ortholog',
+        'Only show predicted locations nearby a specific ortholog'
+      ),
+    }
+  )
+})
+```
+:::
+
+::: {.column width="70%"}
+```{ojs}
+viewof tax_search = Inputs.search(taxes_tbl, {
+  label: infoHelper(
+    'infoPhylo',
+    'Phylogeny',
+    'Filter per NCBI taxonmy annotated phylogeny'
+  ),
+  columns: ["order", "family", "genus", "species"]
+})
+viewof tax = Inputs.table(tax_search, {
+  columns: ["order", "family", "genus", "species"]
+  // select all per default
+  //value: tax_search.keys()
+})
+
+// number of motifs selected vs total
+no_tax_filtered = Array.from(tax).length
+no_tax_total = Array.from(taxes_tbl).length
+
+```
+
+- You can filter either via the search box or select individual species with the checkbox to the left of each row
+-   The current phylogenetic filtering is set to \${no_tax_filtered} of \${no_tax_total} species.
+
+:::
+:::
+
+```{ojs}
+// Extract from phylogeny which taxrow to keep, then match to motifs to keep
+tax_filtering = tax.map(x => x.taxrow)
+
+filtered = refs_tbl.filter(function(row) {
+  // check all negative cases in which rows should be filtered out
+  if ( ! tax_filtering.includes(row.taxrow) ) {
+    // not in a selected taxonomy
+    return false
+  }
+  if ( filters.side !== 'either' ) {
+    if ( row.side !== filters.side) {
+      // not the selected side
+      return false
+    }
+  }
+  if ( filters.fam !== "(no filtering)" ) {
+    if ( row.structure !== filters.fam ) {
+      // not the selected Rfam
+      return false
+    }
+  }
+  if ( filters.ortho !== "(no filtering)" ) {
+    if ( row.ortholog !== filters.ortho ) {
+      // not the ortholog
+      return false
+    }
+  }
+  return true
+})
+
+
+// number of motifs selected vs total
+no_filtered = Array.from(filtered).length
+no_total = Array.from(refs_tbl).length
+```
+
+## Loci matching filters
+
+Your current filtering criteria selected \${no_filtered} of \${no_total} genomic locations
+of known reference structures that overlap the ortholog search regions of
+this study.
+
+```{ojs}
+Inputs.table(filtered, {
+  columns: [
+    "species", "NCBI-accession",
+    "structure", 'Rfam ID',
+    "start", "end", "strand", 
+    "side", "ortholog", 'KEGG ID'
+  ],
+  format: {
+    'NCBI-accession': function(i) {
+      return html`<a href="https://www.ncbi.nlm.nih.gov/search/all/?term=${i}" target="_blank">${i}</a>`
+    },
+    'KEGG ID': function(i) {
+      return html`<a href="https://www.kegg.jp/entry/${i}" target="_blank">${i}</a>`
+    },
+    'Rfam ID': function(i) {
+      return html`<a href="https://rfam.org/family/${i}" target="_blank">${i}</a>`
+    }
+  }
+})
+```
+
+-   This table is scrollable
+-   Clicking on the column name in the headers allows sorting the rows by each score
+-   Note: *Loci* for structures *outside of* the intergenic regions for
+    the RNA structure screen are **not shown** in the table above.

@@ -1,0 +1,13 @@
+superior	superior.len	superior.species	redundant	redundant.len	redundant.species
+K02931_upstream.fna.motif.h1_1	36	127	K02874_downstream.fna.motif.h1_1	36	5
+K02700_downstream.fna.motif.h2_1	65	10	K02700_downstream.fna.motif.h1_1	38	7
+K06920_upstream.fna.motif.h1_2.h1_5.h1_4	107	34	K06920_upstream.fna.motif.h2_1.h2_2	126	33
+K21703_upstream.fna.motif.h2_1	49	97	K21703_upstream.fna.motif.h2_5	51	96
+K01874_downstream.fna.motif.h1_2	41	33	K01874_downstream.fna.motif.h1_1	33	29
+K01626_upstream.fna.motif.h1_5.h2_4	122	41	K01626_upstream.fna.motif.h2_2	41	38
+K02931_upstream.fna.motif.h1_2	36	125	K02874_downstream.fna.motif.h1_1	36	5
+K02931_upstream.fna.motif.h1_1	36	127	K02931_upstream.fna.motif.h1_2	36	125
+K02906_upstream.fna.motif.h2_2	51	121	K02906_upstream.fna.motif.h1_1	35	114
+K01649_upstream.fna.motif.h1_3	46	13	K01649_upstream.fna.motif.h1_1	42	12
+K02716_upstream.fna.motif.h1_3	36	9	K02716_upstream.fna.motif.h1_1	33	6
+K01961_downstream.fna.motif.h1_2	51	68	K01961_downstream.fna.motif.h2_1	47	68

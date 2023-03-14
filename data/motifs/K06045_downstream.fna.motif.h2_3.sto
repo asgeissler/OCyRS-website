@@ -1,0 +1,24 @@
+# STOCKHOLM 1.0
+#=GF AU CMfinder (infernal 1.1)
+
+#=GS 1233231.SAMN03274355.SD80_13730          WT 1.00
+#=GS 1173023.SAMN02441755.GCA_000447295_02833 WT 1.00
+#=GS 1752063.SAMD00042785.FIS3754_26860       WT 1.00
+#=GS 306281.SAMN02469884.GCA_000317205_03580  WT 1.00
+
+#=GS 1233231.SAMN03274355.SD80_13730          DE 29..110	45.0729
+#=GS 1173023.SAMN02441755.GCA_000447295_02833 DE 10..104	101.629
+#=GS 1752063.SAMD00042785.FIS3754_26860       DE 10..104	111.113
+#=GS 306281.SAMN02469884.GCA_000317205_03580  DE 10..104	103.409
+
+1233231.SAMN03274355.SD80_13730                  GCAAUUGUGUUUACAUAGCAAUCUUAUUUGAUUUGUGUUAUAAUAAGUUGCUUUGUAAGCGC-----------AAAG-------CGUGCCGCUAGGCAUA
+#=GR 1233231.SAMN03274355.SD80_13730          SS ......<<<<<<<<<.<<<<<..<<.<<.............>>.>>.>>>>>.>>>>>>>>>......................................
+1173023.SAMN02441755.GCA_000447295_02833         AAUAAAGCGUUUGGAUGACAA--UUAUUUGAUUUAA--UGAAACAA-UUGUCUUCCAAAUGCCACUCUAUAGAAACUUCUAUGGCGUAGAUGCCUACUAU
+#=GR 1173023.SAMN02441755.GCA_000447295_02833 SS ......<<<<<<<<<.<<<<<..<<.<<<...........>>>.>>.>>>>>.>>>>>>>>>.<<.<<<<<<<....>>>>>>>.>>.............
+1752063.SAMD00042785.FIS3754_26860               GAUCAAGAAUUUGGGUGACAA--UUAUUUGAUUUGA--UGAAAAAA-UUGUUUUCCAAGUACUACGCUACGGGAACACCUGUAGCGUACGUCCCUACUAU
+#=GR 1752063.SAMD00042785.FIS3754_26860       SS ......<.<<<<<<<.<<<<<..<<.<<<...........>>>.>>.>>>>>.>>>>>>>.><<<<<<<<<<<....>>>>>>>>>>>............
+306281.SAMN02469884.GCA_000317205_03580          GAGCAAAAAUUUGGGUGACAA--UUGUUCGAUUUGA--UGAAAAAA-UUGUUUUCCAAAUGCUACGCUACGGGAACUCCUGUAGCGUACGUCCCUACUCU
+#=GR 306281.SAMN02469884.GCA_000317205_03580  SS ........<<<<<<<.<<<<<..<<.<<.............>>.>>.>>>>>.>>>>>>>..<<<<<<<<<<<....>>>>>>>>>>>............
+#=GC SS_cons                                     ::::::<<<<<<<<<-<<<<<..<<-<<<_______..__>>>->>.>>>>>->>>>>>>>><<<<<<<<<<<____>>>>>>>>>>>::::::::::::
+#=GC RF                                          xxxxxxxxxxxxxxxxxxxxx..xxxxxxxxxxxxx..xxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//

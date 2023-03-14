@@ -1,0 +1,343 @@
+---
+title: "Browse CRSs"
+---
+
+## Filter selection
+
+```{r}
+# Prepare data for filtering
+library(tidyverse)
+
+redundant <-
+  'data/L_redundant.tsv' |>
+  read_tsv() |>
+  select(motif = redundant) |>
+  unique()
+
+  
+
+motif <-
+  'data/potentially-novel-motifs.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif')
+motif.path <-
+  'data/K_motif-path.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif')
+motif.tax <-
+  'data/K_motif-tax.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif')
+motif.tax.pos <- 
+  'data/K_motif-tax-pos.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif')
+fdr <- 
+  'data/I_fdr.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif')
+
+expressed <-
+  'data/4-maybe-interest.tsv' |>
+  read_tsv() |>
+  anti_join(redundant, 'motif') |>
+  select(motif, expressed.in.genomes)
+
+motif.path %>%
+  select(motif, side, term, ortholog) %>%
+  unique  %>%
+  left_join(motif, 'motif') %>%
+  left_join(fdr, 'motif')  %>%
+  left_join(
+    motif.tax.pos |>
+      select(motif, species) |>
+      unique() |>
+      count(motif, name = 'no.species'),
+    'motif'
+  )  %>%
+  left_join(expressed, 'motif') |>
+  mutate_at('expressed.in.genomes', replace_na, 0) |>
+  # colnames
+  transmute(
+    Category = category, 
+    Side = side,
+    Term = term,
+    Ortholog = ortholog,
+    Candidate = motif,
+    'Knwon structures in search region' = ifelse(
+      search.region == 'has CMsearch ref',
+      'yes',
+      'no'
+    ),
+    'Length' = alignment.len,
+    'No. sequences' = no.seq,
+    'No. species' = no.species,
+    "No. base-pairs" = no.bps,
+    `Paired positions %`,
+    RNAphylo,
+    'FDR (%)' = RNAphylo.fdr,
+    'Transcribed' = expressed.in.genomes,
+    hmmpair,
+    'Average sequence identity (%)' = `Avgerage SI %`,
+    'Alignment power (%)' = `Alignment power %`,
+    'Covarying bps (%)' = `Covarying bps %`
+  ) %>%
+  mutate_if(is.double, round, 2) -> motifs
+
+ojs_define(motifs = motifs)
+
+ojs_define(categories = unique(motif$category))
+
+ojs_define(pathways = c(
+  '(no filtering)',
+  motif.path %>%
+    pull(pathway) %>%
+    unique %>%
+    sort
+))
+
+motif.path %>%
+  select(motif, pathway) %>%
+  drop_na %>%
+  unique -> motifs_paths
+
+ojs_define(motifs_paths = motifs_paths)
+
+motif.tax %>%
+  select(motif, order, family, genus, species) %>%
+  mutate_at(
+    c('order', 'family', 'genus', 'species'),
+    str_replace,
+    '^([0-9]+) (.*)$',
+    '\\2 (NCBI:txid\\1)'
+  ) %>%
+  mutate_all(replace_na, 'N/A') -> tax.nice
+# inconvenience, create additional table to de-replicate rows 
+tax.nice %>%
+  select(-motif) %>%
+  unique %>%
+  arrange(order, family, genus, species) %>%
+  mutate(taxrow = 1:n()) -> taxes
+# match motifs to taxrow
+tax.nice %>%
+  left_join(taxes, c('order', 'family', 'genus', 'species')) %>%
+  select(motif, taxrow) -> motif_taxes
+
+ojs_define(taxes = taxes)
+ojs_define(motif_taxes = motif_taxes)
+```
+
+```{ojs}
+// Allow ojs to access data row-wise
+data = transpose(motifs)
+data_path = transpose(motifs_paths)
+
+taxes_tbl = transpose(taxes)
+motif_taxes_tbl = transpose(motif_taxes)
+```
+
+::: columns
+:::{.column width='30%'}
+
+```{ojs}
+
+// build an HTML label that displays the helper info
+infoHelper = function(x, lab, txt) {
+  // The element to show
+  let res = html`${lab} <span class='myInfo' id='${x}'>ⓘ</span>`
+  // Add tippy tooltip
+  // Iusse: add with delay, otherwise the span was not yet displayed
+  setTimeout(function() {
+    tippy('#' + x, {
+      content: txt 
+    })
+  }, 500)
+  return(res)
+}
+
+
+// Build the filteirng form
+viewof filters = Inputs.form({
+  cat: Inputs.checkbox(
+    categories,
+    {
+      label: infoHelper(
+        'infoCat',
+        'Category',
+        'Depending on R-scape assessed alignment power and covariation for cutoff 20%'
+      ),
+      // check all per default
+      value: categories
+    }
+  ),
+  side: Inputs.radio(
+    ['either', 'upstream', 'downstream'],
+    {
+      label: infoHelper(
+        'infoLoc',
+        'Relative position',
+        'Location relative to the ortholog anchor'
+      ),
+      value: 'either'
+    }
+  ),
+  searchregion: Inputs.toggle({
+    label: infoHelper(
+      'infoReg',
+      'Reference free',
+      'Select to only include candidates detected in intergenic search regions that do not overlap any reference structures in any genome'
+    ),
+    value: false
+  }),
+  pathway: Inputs.select(
+    pathways,
+    {
+      sort: true,
+      label: infoHelper(
+        'infoPath',
+        'Pathway',
+        'Filter by pathway association of the gene ortholog adjacent to which candidates were detected'
+      )
+    }
+  ),
+  transcribed: Inputs.toggle({
+    label: infoHelper(
+      'infoTrans',
+      'Transcribed',
+      'Select if candidate should be detected as transcriptionally active in at least one genome'
+    ),
+    value: false
+  }),
+})
+```
+
+:::
+
+:::{.column width='70%'}
+
+```{ojs}
+viewof tax_search = Inputs.search(taxes_tbl, {
+  label: infoHelper(
+    'infoPhylo',
+    'Phylogeny',
+    'Filter per NCBI taxonmy annotated phylogeny'
+  ),
+  columns: ["order", "family", "genus", "species"]
+})
+viewof tax = Inputs.table(tax_search, {
+  columns: ["order", "family", "genus", "species"]
+  // select all per default
+  //value: tax_search.keys()
+})
+
+// number of motifs selected vs total
+no_tax_filtered = Array.from(tax).length
+no_tax_total = Array.from(taxes_tbl).length
+
+```
+
+- You can filter either via the search box or select individual species with the checkbox to the left of each row
+- The current phylogenetic filtering is set to 
+  \${no_tax_filtered} of \${no_tax_total} species.
+
+::: 
+:::
+
+
+```{ojs}
+// helper to filter pathways to make filtering of motifs easier
+path_filtered = data_path.filter(function(row) {
+  return row.pathway === filters.pathway
+})
+path_motifs = path_filtered.map(x => x.motif)
+
+// Extract from phylogeny which taxrow to keep, then match to motifs to keep
+tax_filtering = tax.map(x => x.taxrow)
+tax_motif_filtering = motif_taxes_tbl.
+  filter(row => tax_filtering.includes(row.taxrow)).
+  map(x => x.motif)
+
+filtered = data.filter(function(row) {
+  // check all negative cases in which rows should be filtered out
+  if ( ! filters.cat.includes(row.Category) ) {
+    // not in a selected category
+    return false
+  }
+  if ( filters.side !== 'either' ) {
+    if ( row.Side !== filters.side) {
+      // not the selected side
+      return false
+    }
+  }
+  if ( filters.searchregion ) {
+    // Filter out motifs that were in search regions in which CMsearch had
+    // any hit (even if the motif does not overlap)
+    if ( row["Knwon structures in search region"] === 'yes' ) {
+      return false
+    }
+  }
+  if ( filters.transcribed ) {
+    // Filter for transcriptionally active candidates
+    if ( row["Transcribed"] === 0 ) {
+      return false
+    }
+  }
+  if ( filters.pathway !== "(no filtering)" ) {
+    if ( ! path_motifs.includes(row.Candidate) ) {
+      // not in the selected pathway
+      return false
+    }
+  }
+  if ( ! tax_motif_filtering.includes(row.Candidate) ) {
+    return false
+  }
+  return true
+})
+
+
+// number of motifs selected vs total
+//no_filtered = Array.from(filtered).length
+no_filtered = Array.from(filtered_search).length
+no_total = Array.from(data).length
+```
+
+## Candidates matching filters
+
+Your current filtering criteria matches \${no_filtered} of \${no_total} predicted RNA structures, that are:
+
+```{ojs}
+viewof filtered_search = Inputs.search(filtered, {
+  label: infoHelper(
+    'infoTXT',
+    'Ortholog',
+    'Full text search orthologs by name'
+  ),
+  columns: ["Candidate", "Term", "Ortholog"]
+})
+Inputs.table(filtered_search, {
+  columns: [
+    "Candidate", "Ortholog",
+    "Length", "No. sequences", "No. species",
+    "No. base-pairs", // "Paired positions %", 
+    //"RNAphylo",
+    "FDR (%)",
+    'Transcribed',
+    //"hmmpair",
+    'Average sequence identity (%)',
+    "Alignment power (%)", 
+    "Covarying bps (%)"
+  ],
+  format: {
+    Candidate: function(i) {
+      return html`<a href="candidate.html?candidate=${i}" target="_blank">${i}</a>`
+    }
+  }
+})
+```
+
+- This table is scrollable
+- Clicking on the column name in the headers allows sorting the rows by each score
+- The columns "Transcribed" referes to the number of genomes in which the
+  candidate was detected to be transcriptionally active
+
+

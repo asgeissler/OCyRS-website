@@ -1,0 +1,124 @@
+---
+title: "Candidate novel conserved RNA structures (CRSs) in cyanobacteria"
+---
+
+This web resource presents the key results to 
+a large-scale, phylum-wide comparative genomics study in
+202 species-representative genomes in *cyanobacteria* from
+the
+[proGenomes](https://progenomes.embl.de/) database.
+The study first identified a set of 931 *ortholog* gene groups to
+(i) identify the local phylogeny and (ii) then screen the
+adjacent up-/down-stream located *intergenic regions*
+for **conserved RNA structures (CRS)**.
+This study used the
+[CMfinder](https://sourceforge.net/projects/weinberg-cmfinder/)
+tool to predict RNA structures.
+In order to identify which of the predicted structures are novel,
+we first annotated known structures in the intergenic search regions
+relative to the bacterial *reference RNA structure* families provided in
+[Rfam](https://rfam.org/) database with
+the 
+[CMsearch](http://eddylab.org/infernal/) tool.
+Subsequently, we predict that detected RNA structure without
+overlap to the references are *candidates for novel RNA structures*.
+We also evaluated the structure covariation of each predicted
+RNA structures with the
+[R-scape](http://eddylab.org/R-scape/) tool.
+For an additional line of evidence, we
+processed public single-end RNA-seq data to 
+identify transcriptionally active RNA structures.
+(using the the zFPKM method).
+
+If you use this resource, please cite:
+
+**Exploring the RNA structure regulatory potential in 202 cyanobacterial genomes**
+
+Adrian Sven Geissler, Elena Carrasquer-Alvarez, Christian Anthon, Niels-Ulrik Frigaard, Jan Gorodkin, and Stefan Ernst Seemann
+
+*in preparation*
+
+```{r}
+library(tidyverse)
+library(kableExtra)
+
+
+dat <-
+  'data/potentially-novel-motifs.tsv' |>
+  read_tsv() |>
+  select(motif, category) |>
+  # remove redundant genes
+  anti_join(
+    'data/L_redundant.tsv' |>
+      read_tsv(),
+    c('motif' = 'redundant')
+  ) |>
+  # add pathway indication
+  left_join(
+    'data/K_motif-path.tsv' |>
+      read_tsv() |> 
+      drop_na(pathway) |>
+      select(motif) |>
+      unique() |>
+      mutate(has.path = TRUE),
+    'motif'
+  ) |>
+  # expressed genomes indication
+  left_join(
+    'data/4-maybe-interest.tsv' |>
+      read_tsv(),
+    'motif'
+  )
+
+# Collect values for overview table
+dat2 <- bind_rows(
+  dat |>
+    count(category) |>
+    mutate(col = 'Candidate RNA structures'),
+  dat |>
+    filter(has.path) |>
+    count(category) |>
+    mutate(col = 'Associated with pathways'),
+  dat |>
+    filter(expressed.in.genomes >= 1) |>
+    count(category) |>
+    mutate(col = 'Transcriptionally active'),
+  dat |>
+    filter(expressed.in.genomes >= 2) |>
+    count(category) |>
+    mutate(col = 'Transcriptionally active in ≥ 2 genomes')
+)
+
+# Add total row
+dat3 <- bind_rows(
+  dat2,
+  dat2 |>
+    group_by(col) |>
+    summarize(category = 'In total', n = sum(n))
+)
+# spread table, arrange rows etc
+dat3 |>
+  # keep order of columns
+  mutate_at('col', fct_inorder) |>
+  # spread out
+  spread(col, n) |>
+  rename(Category = category) |>
+  # arrange rows
+  mutate_at(
+    'Category', fct_relevel,
+    c(
+      "High covariation", 
+      "Conserved sequence (low covariation and power)",
+      "High power (low covariation)",
+      "In total"
+    )) |>
+  arrange(Category) |>
+  # requested renaming
+  mutate_at('Category', fct_recode,
+            "High variational power (low covariation)" = "High power (low covariation)") |>
+  # print in html
+  kable(caption = 'Overview over the number of detected candidate RNA structures') %>%
+  kable_paper('hover', full_width = FALSE) %>%
+  row_spec(4, bold = TRUE)
+
+```
