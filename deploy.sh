@@ -6,7 +6,6 @@ rm -rf _site
 quarto render
 
 cp -r data _site/
-cp -r swingjs _site/
 
 
 # Ensure that localhost links are correct

@@ -2,9 +2,9 @@
 title: "Alignments"
 ---
 
-
+```{=html}
 <script src="swingjs/swingjs2.js"></script>
-
+```
 ```{r}
 # Prepare data for filtering
 library(tidyverse)
@@ -28,35 +28,20 @@ motif %>%
 ojs_define(motifs_list = motifs_list)
 ```
 
-<div style='display: none;'>
+::: {style="display: none;"}
 ```{ojs}
-//Check GET variable `motif` for what motif to choose, otherwise default to first one
+//Check GET variable `candidate` for what motif to choose, otherwise default to first one
 para = window.location.href.match(/(?<=candidate=)(.*?)[^&]+/)
-mutable res = null
 sv = {
   if ( para !== null ) {
     if ( motifs_list.includes(para[0]) ) {
-      // make sure to return as non-reactive object
-      mutable res = para[0]
-      return mutable res
+      return para[0]
     }
   }
-  // DEBUG use a fixed one
-  //return 'K02110_downstream.fna.motif.h1_5'
   return motifs_list[0] 
 }
-// JalView does not support the ?candidate= in the URL -> remove now
-// https://developer.mozilla.org/en-US/docs/Web/API/History/pushState
-window.history.pushState(
-   {
-    motif: mutable res
-   },
-   "",
-   // delete everything after the ?
-   window.location.href.replace(/\?.*$/, '')
-)
 ```
-</div>
+:::
 
 ```{ojs}
 infoHelper = function(x, lab, txt) {
@@ -72,77 +57,22 @@ infoHelper = function(x, lab, txt) {
   return(res)
 }
 
-
 // Choose a single motif
 viewof sel = Inputs.select(
   motifs_list,
   {
-    label: infoHelper(
-      'infoMot',
-      'Candidate',
-      'Please press the "show" button to update the visualization for any other candidate chosen from the drop-down menu'
-    ),
+    label: 'Alignment for',
     value: sv
   }
 )
-Inputs.button("Show", {
-  label: null,
-  reduce: () => {
-    mutable url = 'msa.html?candidate=' + sel
-    location.href = mutable url
-    return(0)
-  }
-})
 
-html`Currently viewing: ${sv} <a href="https://rth.dk/resources/crs/cyanobacteria/data/motifs/${sv}.sto">Download alignment</a> | <a href="https://rth.dk/resources/crs/cyanobacteria/candidate.html?candidate=${sv}">Motif details</a>`
+html`Download alignment as <a href="https://rth.dk/resources/crs/cyanobacteria/data/motifs/${sel}.sto">Stockholm</a> | <a href="https://rth.dk/resources/crs/cyanobacteria/data/motifs-fasta/${sel}.fasta">Fasta</a> | <a href="https://rth.dk/resources/crs/cyanobacteria/data/jalview/${sel}.svg">Figure</a>`
+
+html`<a href="https://rth.dk/resources/crs/cyanobacteria/candidate.html?candidate=${sel}">View CRS details</a>`
 ```
 
-
-<div style='display: none;'>
 ```{ojs}
-{
-  if (!self.SwingJS) {
-    alert('swingjs2.js was not found. It needs to be in swingjs folder in the same directory as ' + document.location.href)
-  }
-}
-  
-  
-mutable url = 'data/motifs/' + sv + '.sto'
-//SwingJS.getApplet('JalviewJS', {
-SwingJS.getApplet('JalviewJSEmbedded', {
-  code: null,
-  main: "jalview.bin.Jalview",
-  core: "jalview",
-  //args: '-open ' + mutable url + ' -color nucleotide,
-  args: '-colour nucleotide -open ' + mutable url,
-	//width: 1000,
-	//height: 600,
-  readyFunction: null,
-  serverURL: 'https://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php',
-	j2sPath: 'swingjs/j2s',
-	console:'sysoutdiv',
-	allowjavascript: true,
-  // Embedding
-  jalview_EMBEDDED: true
-})
+html`<center><img src="https://rth.dk/resources/crs/cyanobacteria/data/jalview/${sel}.svg" class = 'jalview'/></center>`
 ```
-</div>
-  
-
-
-<div id="jalview-desktop-div" style="z-index:1000;position:relative;top:0px;left:0px;width:70%;height:30px"></div>
-
-<div id="jalview-alignment-div" style="position:relative;top:0px;left:0px;width:100%;height:80%;  resize: both; overflow: auto;">
-Please wait for a short moment, the alignment will be displayed momentarily.
-</div>
 
 Visualization made with [Jalview](https://www.jalview.org/).
-
-<!--div style="position:left:900px;top:30px;width:600px;height:300px;">
-</div-->
-
-<div id="sysoutdiv" style="display: none; border:1px solid green;width:70%;height:100px;overflow:auto">
-</div>
-
-
-

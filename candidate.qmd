@@ -243,7 +243,7 @@ viewof sel = Inputs.select(
   }
 )
 
-html`Alignment: <a href="https://rth.dk/resources/crs/cyanobacteria/data/motifs/${sel}.sto">Download</a> | <a href="https://rth.dk/resources/crs/cyanobacteria/msa.html?candidate=${sel}">View</a>`
+html`<a href="https://rth.dk/resources/crs/cyanobacteria/msa.html?candidate=${sel}">View alignment</a>`
 
 motifs_filtered = motifs_tbl.filter(function(row) {
   return row["Candidate ID"] === sel
