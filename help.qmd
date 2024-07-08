@@ -1,0 +1,76 @@
+---
+title: "Website useage help"
+---
+
+This website presents the comprehensive information related to
+the RNA structure predictions. The website offers the following 
+main sections (see entries in the blue navigation bar on the top of the website):
+
+## CRS-Cyanobacteria
+
+The landing page briefly describes the study and contains links
+to the main computational tools, the citation reference, and
+a table with an overview over the number of predicted
+conserved RNA structures (CRSs).
+
+## Browse CRSs
+
+The browser page allows a user to filter the predicted CRSs by
+taxonomy (search area in the top right table),
+scores and pathway associations (check boxes in the top left).
+All CRSs that fit the user selection are shown in the table below.
+The main result table also has a search field that allows the user
+to search for gene names, ortholog identifiers, or CRS identifiers.
+A click on the header of each table allows to re-arrange the rows
+by the score of the clicked column.
+
+Hoovering over the red information circles shows additional information
+to each respective entry.
+
+Clicking on the blue underlines CRS identifier in the lower table
+naviages a user to details of the corresponding CRS in the next 
+website section.
+
+## CRS details
+
+This section shows all details associated with a CRS that a user
+selected either in the prior browser section or from the drop down
+box.
+The shown information includes all scores, potential
+pathway associations from the orthologous gene adjacent to which
+the CRS was perdicted, all occurences of alignment sequences in the genomes,
+an overview over which species contain alignment sequences,
+and predicted transcriptional activity.
+
+The details page also shows the conserved RNA structure predicted
+by CMfinder with R-scape significant compensatory base pairs highlighted
+in green. The structure figures were generated with R2R.
+The legend to these structures is as follows (adapted from the R2R handbook):
+
+<center><img src="r2r.svg" width = '70%'/></center>
+
+
+## Alignments
+
+This sections shows the alignments the predicted CRSs.
+The nucleotide positions are colored according to the JalView default
+scheme, that is 
+<font color='green'>adenine  in blue</font>,
+<font color='orange'>cytosine  in blue</font>,
+<font color='red'>guanine  in blue</font>,
+and
+<font color='blue'>uracil  in blue</font>.
+The sequence identifiers on the left side are
+dot separated combination of the NCBI taxonomy ID, 
+the BioSample identifier, and the Genbank Accession of the respective 
+plasmid.
+The conserved RNA structures are shown below the alignment.
+
+## Reference structures
+
+The novelty of CRSs was assessed to known RNA structures that
+were annotated via a homology search. This website
+section lists all hits for bacterial Rfam families that
+overlapped the search regions in which this study screened for
+RNA structures. A user can interact with this website section
+in a similar manner as the CRS browser.

@@ -17,6 +17,8 @@ website:
       - candidate.qmd
       - msa.qmd
       - cmsearch.qmd
+      - href: help.qmd
+        text: Help
 
 format:
   html:
