@@ -38,10 +38,10 @@ fdr <-
   anti_join(redundant, 'motif')
 
 expressed <-
-  'data/4-maybe-interest.tsv' |>
+  'data/5-maybe-interest.tsv' |>
   read_tsv() |>
-  anti_join(redundant, 'motif') |>
-  select(motif, expressed.in.genomes)
+  anti_join(redundant, c('gene' = 'motif')) |>
+  select(motif = gene, expressed.in.genomes)
 
 motif.path %>%
   select(motif, side, term, ortholog) %>%

@@ -65,9 +65,9 @@ dat <-
   ) |>
   # expressed genomes indication
   left_join(
-    'data/4-maybe-interest.tsv' |>
+    'data/5-maybe-interest.tsv' |>
       read_tsv(),
-    'motif'
+    c('motif' = 'gene')
   )
 
 # Collect values for overview table

@@ -1,5 +1,5 @@
 # copy data from pipeline over
-p=/home/projects/rth/co2capture/subprojects/OCyRS/OCyRS-pipeline/data
+p=~/remote-server/projects/rth/co2capture/subprojects/OCyRS/OCyRS-pipeline/data
 
 mkdir data
 # pathways and taxonomy associations
@@ -21,8 +21,9 @@ cp $p/A_representatives/taxonomy.tsv data/
 # for now, ignore: G2_terminators.tsv.gz
 
 # Results from the expression analysis
-cp /home/projects/rth/co2capture/subprojects/OCyRS/OCyRS-public-RNAseq/4-expression-ratios.tsv data/
-cp /home/projects/rth/co2capture/subprojects/OCyRS/OCyRS-public-RNAseq/4-maybe-interest.tsv data/
+
+cp ~/remote-server/projects/rth/co2capture/subprojects/OCyRS/OCyRS-companion/Public-RNAseq/5-expression-ratios.tsv data/
+cp ~/remote-server/projects/rth/co2capture/subprojects/OCyRS/OCyRS-companion/Public-RNAseq/5-maybe-interest.tsv data/
 
 # iterate over motifs
 tail -n +2 data/K_motif-tax.tsv | cut -f 1 | sort | uniq > data/motifs.txt

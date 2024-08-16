@@ -36,10 +36,10 @@ fdr <-
 
 
 expressed <-
-  'data/4-maybe-interest.tsv' |>
+  'data/5-maybe-interest.tsv' |>
   read_tsv() |>
-  anti_join(redundant, 'motif') |>
-  select(motif, expressed.in.genomes)
+  anti_join(redundant, c('gene' = 'motif')) |>
+  select(motif = gene, expressed.in.genomes)
 
 motif.path %>%
   select(motif, side, term, ortholog) %>%
@@ -163,11 +163,8 @@ ojs_define(phylo = phylo)
 
 ```{r}
 # The data of which motif is expressed in which genome
-'data/4-expression-ratios.tsv' |>
+'data/5-expression-ratios.tsv' |>
   read_tsv() |>
-  # zFPKM on RPKM data expressed
-  filter(method == 'RPKM') |>
-  select(- method) |>
   # only on motifs
   filter(str_detect(gene, 'fna.motif')) |>
   mutate(
