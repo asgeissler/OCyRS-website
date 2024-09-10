@@ -55,9 +55,9 @@ The legend to these structures is as follows (adapted from the R2R handbook):
 This sections shows the alignments the predicted CRSs.
 The nucleotide positions are colored according to the JalView default
 scheme, that is 
-<font color='green'>adenine  in blue</font>,
-<font color='orange'>cytosine  in blue</font>,
-<font color='red'>guanine  in blue</font>,
+<font color='green'>adenine  in green</font>,
+<font color='orange'>cytosine  in orange</font>,
+<font color='red'>guanine  in red</font>,
 and
 <font color='blue'>uracil  in blue</font>.
 The sequence identifiers on the left side are
@@ -66,11 +66,11 @@ the BioSample identifier, and the Genbank Accession of the respective
 plasmid.
 The conserved RNA structures are shown below the alignment.
 
-## Reference structures
+## Known structures
 
 The novelty of CRSs was assessed to known RNA structures that
-were annotated via a homology search. This website
-section lists all hits for bacterial Rfam families that
+were annotated via a homology search with CMsearch.
+This website section lists all hits for bacterial Rfam families that
 overlapped the search regions in which this study screened for
 RNA structures. A user can interact with this website section
 in a similar manner as the CRS browser.

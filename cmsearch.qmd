@@ -1,6 +1,9 @@
 ---
-title: "Reference structures"
+title: "Known structures"
 ---
+
+(Note: This list includes "*only*" the Rfam hits that overlap the intergenic search region of the RNA structure screen)
+
 
 ## Filter selection
 
@@ -233,7 +236,7 @@ no_total = Array.from(refs_tbl).length
 ## Loci matching filters
 
 Your current filtering criteria selected \${no_filtered} of \${no_total} genomic locations
-of known reference structures that overlap the ortholog search regions of
+of known RNA structures that overlap the ortholog search regions of
 this study.
 
 ```{ojs}

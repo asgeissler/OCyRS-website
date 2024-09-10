@@ -184,8 +184,8 @@ viewof filters = Inputs.form({
   searchregion: Inputs.toggle({
     label: infoHelper(
       'infoReg',
-      'Reference free',
-      'Select to only include candidates detected in intergenic search regions that do not overlap any reference structures in any genome'
+      'No known structure',
+      'Select to only include candidates detected in intergenic search regions that do not overlap any known structures in any genome'
     ),
     value: false
   }),
