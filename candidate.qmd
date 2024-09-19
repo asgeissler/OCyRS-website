@@ -281,9 +281,7 @@ Inputs.table(record, {
 
 ::: column
 ```{ojs}
-// restore fna.motif for URL to images
-sel2 = sel.replace('stream', 'stream.fna.motif')
-html`<center><img src="https://rth.dk/resources/crs/cyanobacteria//data/R2R/${sel2}.svg" class = 'r2r'/></center>`
+html`<center><img src="https://rth.dk/resources/crs/cyanobacteria//data/R2R/${sel}.svg" class = 'r2r'/></center>`
 ```
 :::
 :::

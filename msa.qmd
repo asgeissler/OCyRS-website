@@ -63,16 +63,14 @@ viewof sel = Inputs.select(
     value: sv
   }
 )
-// restore fna.motif for URL to images
-sel2 = sel.replace('stream', 'stream.fna.motif')
 
-html`Download alignment as <a href="https://rth.dk/resources/crs/cyanobacteria/data/motifs/${sel2}.sto">Stockholm</a> | <a href="https://rth.dk/resources/crs/cyanobacteria/data/motifs-fasta/${sel2}.fasta">Fasta</a> | <a href="https://rth.dk/resources/crs/cyanobacteria/data/jalview/${sel2}.svg">Figure</a>`
+html`Download alignment as <a href="https://rth.dk/resources/crs/cyanobacteria/data/motifs/${sel}.sto">Stockholm</a> | <a href="https://rth.dk/resources/crs/cyanobacteria/data/motifs-fasta/${sel}.fasta">Fasta</a> | <a href="https://rth.dk/resources/crs/cyanobacteria/data/jalview/${sel}.svg">Figure</a>`
 
 html`<a href="https://rth.dk/resources/crs/cyanobacteria/candidate.html?candidate=${sel}">View CRS details</a>`
 ```
 
 ```{ojs}
-html`<center><img src="https://rth.dk/resources/crs/cyanobacteria/data/jalview/${sel2}.svg" class = 'jalview'/></center>`
+html`<center><img src="https://rth.dk/resources/crs/cyanobacteria/data/jalview/${sel}.svg" class = 'jalview'/></center>`
 ```
 
 Visualization made with [Jalview](https://www.jalview.org/).
