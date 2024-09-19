@@ -79,11 +79,13 @@ motif.path %>%
     'Alignment power % (R-Scape)' = `Alignment power %`,
     'Covarying base-pairs % (R-Scape)' = `Covarying bps %`
   ) %>%
+  mutate_at('Candidate ID', str_remove, '\\.fna\\.motif') |>
   mutate_if(is.double, round, 2) -> motifs
 
 ojs_define(motifs = motifs)
 
 motif %>%
+  mutate_at('motif', str_remove, '\\.fna\\.motif') |>
   pull(motif) %>%
   unique %>%
   sort -> motifs_list
@@ -92,7 +94,8 @@ ojs_define(motifs_list = motifs_list)
 
 motif.path %>%
   select(motif, 'KEGG ID' = path, Title = pathway) %>%
-  drop_na %>%
+  mutate_at('motif', str_remove, '\\.fna\\.motif') |>
+  drop_na() %>%
   unique -> motifs_paths
 
 ojs_define(motifs_paths = motifs_paths)
@@ -107,6 +110,7 @@ motif.tax.pos %>%
     '^([0-9]+) (.*)$',
     '\\2 (NCBI:txid\\1)'
   ) %>%
+  mutate_at('motif', str_remove, '\\.fna\\.motif') |>
   arrange(motif, species, `NCBI-accession`, start) -> pos
 
 ojs_define(pos = pos)
@@ -156,6 +160,7 @@ full_join(
   complete(motif, order) %>%
   mutate_at('ratio', replace_na, 0) %>%
   mutate_at('lab', replace_na, '') %>%
+  mutate_at('motif', str_remove, '\\.fna\\.motif') |>
   left_join(taxa.cl, 'order') -> phylo
 
 ojs_define(phylo = phylo)
@@ -201,7 +206,8 @@ crossing(motif = motif$motif, genome = genome.cl$genome) |>
   mutate_at('ratio', replace_na, 0) |>
   mutate_at('lab', replace_na, '') |>
   arrange(motif, genome) |>
-  left_join(genome.cl, 'genome') -> expr.dat
+  left_join(genome.cl, 'genome') |>
+  mutate_at('motif', str_remove, '\\.fna\\.motif')  -> expr.dat
 
   
 ojs_define(expr = expr.dat)
@@ -240,6 +246,7 @@ viewof sel = Inputs.select(
   }
 )
 
+
 html`<a href="https://rth.dk/resources/crs/cyanobacteria/msa.html?candidate=${sel}">View alignment</a>`
 
 motifs_filtered = motifs_tbl.filter(function(row) {
@@ -274,7 +281,9 @@ Inputs.table(record, {
 
 ::: column
 ```{ojs}
-html`<center><img src="https://rth.dk/resources/crs/cyanobacteria//data/R2R/${sel}.svg" class = 'r2r'/></center>`
+// restore fna.motif for URL to images
+sel2 = sel.replace('stream', 'stream.fna.motif')
+html`<center><img src="https://rth.dk/resources/crs/cyanobacteria//data/R2R/${sel2}.svg" class = 'r2r'/></center>`
 ```
 :::
 :::

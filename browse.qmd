@@ -82,6 +82,7 @@ motif.path %>%
     'Alignment power (%)' = `Alignment power %`,
     'Covarying bps (%)' = `Covarying bps %`
   ) %>%
+  mutate_at('Candidate', str_remove, '\\.fna\\.motif') |>
   mutate_if(is.double, round, 2) -> motifs
 
 ojs_define(motifs = motifs)
@@ -98,7 +99,8 @@ ojs_define(pathways = c(
 
 motif.path %>%
   select(motif, pathway) %>%
-  drop_na %>%
+  mutate_at('motif', str_remove, '\\.fna\\.motif') |>
+  drop_na() %>%
   unique -> motifs_paths
 
 ojs_define(motifs_paths = motifs_paths)
@@ -121,7 +123,8 @@ tax.nice %>%
 # match motifs to taxrow
 tax.nice %>%
   left_join(taxes, c('order', 'family', 'genus', 'species')) %>%
-  select(motif, taxrow) -> motif_taxes
+  select(motif, taxrow) |>
+  mutate_at('motif', str_remove, '\\.fna\\.motif')  -> motif_taxes
 
 ojs_define(taxes = taxes)
 ojs_define(motif_taxes = motif_taxes)
